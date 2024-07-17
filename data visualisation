@@ -1,0 +1,64 @@
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CSVDataReader {
+
+    public List<DataItem> readCSV(String filePath) throws Exception {
+        List<DataItem> dataItems = new ArrayList<>();
+
+        Reader reader = new FileReader(filePath);
+        CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader());
+
+        for (CSVRecord csvRecord : csvParser) {
+            String category = csvRecord.get("Category");
+            double value = Double.parseDouble(csvRecord.get("Value"));
+            dataItems.add(new DataItem(category, value));
+        }
+
+        csvParser.close();
+        return dataItems;
+    }
+}
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class BarChart {
+
+    private CategoryDataset createDataset(List<DataItem> dataItems) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (DataItem item : dataItems) {
+            dataset.addValue(item.getValue(), item.getCategory(), "");
+        }
+        return dataset;
+    }
+
+    public JPanel createChartPanel(List<DataItem> dataItems) {
+        JFreeChart barChart = ChartFactory.createBarChart(
+                "Bar Chart Demo",
+                "Category",
+                "Value",
+                createDataset(dataItems),
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+
+        ChartPanel chartPanel = new ChartPanel(barChart);
+        chartPanel.setPreferredSize(new Dimension(800, 600));
+        return chartPanel;
+    }
+}
